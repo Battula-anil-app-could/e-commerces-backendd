@@ -260,12 +260,14 @@ class Reponser
         if ($method === "DELETE" && $main_req === "removeFromCart") {
             $body = file_get_contents("php://input");
             parse_str($body, $queryParams);
-            $userId = $queryParams["userId"];
-            $productId = $queryParams['productId'];
+            $userId = $_GET['userId'] ?? $queryParams["userId"];
+            $productId = $_GET['productId'] ?? $queryParams['productId'];
+            // echo $userId;
+            // echo $productId;
             try {
-                $letcheckDelete = $connect->prepare("DELETE  FROM cart where user_id = '$userId' AND product_id = $productId");
+                $letcheckDelete = $connect->prepare("DELETE FROM cart where user_id = $userId AND product_id = $productId");
                 $letcheckDelete->execute();
-                $letcheckProductExist = $connect->prepare("SELECT * FROM cart where user_id = '$userId' AND product_id = $productId");
+                $letcheckProductExist = $connect->prepare("SELECT * FROM cart where user_id = $userId AND product_id = $productId");
                 $letcheckProductExist->execute();
                 $result = $letcheckProductExist->fetchAll(PDO::FETCH_ASSOC);
                 if (count($result) === 0) {
@@ -283,9 +285,9 @@ class Reponser
 
 
                     ];
+                    echo json_encode($res);
                 }
 
-                echo json_encode($res);
             } catch (err) {
                 $res = [
                     'message' => 'error',
