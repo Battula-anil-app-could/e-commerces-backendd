@@ -217,7 +217,7 @@ class Reponser
             }
 
         }
-        if ($method === "POST" && $main_req === "addToCart") {
+        if ($method === "POST" && $main_req === "Cart") {
             $body = file_get_contents("php://input");
             parse_str($body, $queryParams);
             $userId = $queryParams["userId"];
@@ -257,7 +257,7 @@ class Reponser
             }
 
         }
-        if ($method === "DELETE" && $main_req === "removeFromCart") {
+        if ($method === "DELETE" && $main_req === "Cart") {
             $body = file_get_contents("php://input");
             parse_str($body, $queryParams);
             $userId = $_GET['userId'] ?? $queryParams["userId"];
@@ -271,6 +271,49 @@ class Reponser
                 $letcheckProductExist->execute();
                 $result = $letcheckProductExist->fetchAll(PDO::FETCH_ASSOC);
                 if (count($result) === 0) {
+                    $res = [
+                        'message' => 'Success',
+                        'status' => 200
+
+                    ];
+                    echo json_encode($res);
+
+                } else {
+                    $res = [
+                        'message' => 'Error',
+                        'status' => 404,
+
+
+                    ];
+                    echo json_encode($res);
+                }
+
+            } catch (err) {
+                $res = [
+                    'message' => 'error',
+                    'status' => 404,
+
+
+                ];
+                echo json_encode($res);
+            }
+
+        }
+        if ($method === "PUT" && $main_req === "Cart") {
+            $body = file_get_contents("php://input");
+            parse_str($body, $queryParams);
+            $userId = $_REQUEST['userId'] ?? $queryParams["userId"];
+            $productId = $_REQUEST['productId'] ?? $queryParams['productId'];
+            $quantity = $_REQUEST['quantity'] ?? $queryParams['quantity'];
+            echo $userId;
+            echo $productId;
+            try {
+                $letcheckDelete = $connect->prepare("UPDATE cart SET quantity = $quantity where user_id = $userId AND product_id = $productId");
+                $letcheckDelete->execute();
+                $letcheckProductExist = $connect->prepare("SELECT * FROM cart where user_id = $userId AND product_id = $productId");
+                $letcheckProductExist->execute();
+                $result = $letcheckProductExist->fetchAll(PDO::FETCH_ASSOC);
+                if (count($result) !== 0) {
                     $res = [
                         'message' => 'Success',
                         'status' => 200
