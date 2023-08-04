@@ -25,27 +25,27 @@ class Reponser
     public function ResProcesser($method, $main_req): void
     {
         $connect = $this->dbConnect();
-        if ($method === "POST" && $main_req === "addproduct") {
-            try {
-                $body = file_get_contents("php://input");
-                parse_str($body, $queryParams);
-                $name = $queryParams["name"];
-                $price = $queryParams["price"];
-                $description = $queryParams["description"];
-                $category = $queryParams["category"];
-                $imgUrl = $queryParams["imageUrl"];
-                $sqlOf = "INSERT INTO product(name, category, description, img_url, price) VALUES('$name', '$category', '$description', '$imgUrl', $price)";
+        // if ($method === "POST" && $main_req === "addproduct") {
+        //     try {
+        //         $body = file_get_contents("php://input");
+        //         parse_str($body, $queryParams);
+        //         $name = $queryParams["name"];
+        //         $price = $queryParams["price"];
+        //         $description = $queryParams["description"];
+        //         $category = $queryParams["category"];
+        //         $imgUrl = $queryParams["imageUrl"];
+        //         $sqlOf = "INSERT INTO product(name, category, description, img_url, price) VALUES('$name', '$category', '$description', '$imgUrl', $price)";
 
-                $insert = $connect->prepare($sqlOf);
-                $insert->execute();
+        //         $insert = $connect->prepare($sqlOf);
+        //         $insert->execute();
 
-                $data = $connect->prepare("SELECT * FROM product");
-                $data->execute();
-                echo json_encode($data->fetchAll(PDO::FETCH_ASSOC));
-            } catch (err) {
-                echo "error while adding product";
-            }
-        }
+        //         $data = $connect->prepare("SELECT * FROM product");
+        //         $data->execute();
+        //         echo json_encode($data->fetchAll(PDO::FETCH_ASSOC));
+        //     } catch (err) {
+        //         echo "error while adding product";
+        //     }
+        // }
         if ($method === "GET" && $main_req === "products") {
 
             $data = $connect->prepare("SELECT * FROM product");
@@ -70,7 +70,7 @@ class Reponser
                 ];
                 echo json_encode($res);
             } else {
-                if (strlen($email) < 5) {
+                if (!preg_match('/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/', $email)) {
                     $res = [
                         'message' => 'The length of the email should be above 5 characters',
                         'status' => 404
@@ -210,6 +210,111 @@ class Reponser
                 $res = [
                     'message' => 'Error while login',
                     'status' => 502,
+
+
+                ];
+                echo json_encode($res);
+            }
+
+        }
+        if ($method === "POST" && $main_req === "addToCart") {
+            $body = file_get_contents("php://input");
+            parse_str($body, $queryParams);
+            $userId = $queryParams["userId"];
+            $productId = $queryParams['productId'];
+            try {
+                $letcheckProductExist = $connect->prepare("SELECT * FROM cart where user_id = '$userId' AND product_id = $productId");
+                $letcheckProductExist->execute();
+                $result = $letcheckProductExist->fetchAll(PDO::FETCH_ASSOC);
+                if (count($result) > 0) {
+                    $res = [
+                        'message' => 'Success',
+                        'status' => 200
+
+                    ];
+                    echo json_encode($res);
+
+                } else {
+                    $insertQuery = $connect->prepare("INSERT INTO cart (user_id, product_id, quantity) VALUES ($userId, $productId, 1)");
+                    $insertQuery->execute();
+                    $res = [
+                        'message' => 'Success',
+                        'status' => 200,
+
+
+                    ];
+                }
+
+                echo json_encode($res);
+            } catch (err) {
+                $res = [
+                    'message' => 'error',
+                    'status' => 404,
+
+
+                ];
+                echo json_encode($res);
+            }
+
+        }
+        if ($method === "DELETE" && $main_req === "removeFromCart") {
+            $body = file_get_contents("php://input");
+            parse_str($body, $queryParams);
+            $userId = $queryParams["userId"];
+            $productId = $queryParams['productId'];
+            try {
+                $letcheckDelete = $connect->prepare("DELETE  FROM cart where user_id = '$userId' AND product_id = $productId");
+                $letcheckDelete->execute();
+                $letcheckProductExist = $connect->prepare("SELECT * FROM cart where user_id = '$userId' AND product_id = $productId");
+                $letcheckProductExist->execute();
+                $result = $letcheckProductExist->fetchAll(PDO::FETCH_ASSOC);
+                if (count($result) === 0) {
+                    $res = [
+                        'message' => 'Success',
+                        'status' => 200
+
+                    ];
+                    echo json_encode($res);
+
+                } else {
+                    $res = [
+                        'message' => 'Error',
+                        'status' => 404,
+
+
+                    ];
+                }
+
+                echo json_encode($res);
+            } catch (err) {
+                $res = [
+                    'message' => 'error',
+                    'status' => 404,
+
+
+                ];
+                echo json_encode($res);
+            }
+
+        }
+        if ($method === "GET" && $main_req === "cartItems") {
+            $userId = $_GET["userId"];
+            try {
+                $productsInCart = $connect->prepare("SELECT product_id, quantity FROM cart WHERE user_id = $userId");
+                $productsInCart->execute();
+                $result = $productsInCart->fetchAll(PDO::FETCH_ASSOC);
+                $res = [
+                    'message' => 'Success',
+                    'products' => $result,
+                    'status' => 200,
+
+
+                ];
+                echo json_encode($res);
+            } catch (err) {
+                $res = [
+                    'message' => 'error',
+                    'status' => 404,
 
 
                 ];

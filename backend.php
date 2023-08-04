@@ -25,7 +25,6 @@ array_shift($parts);
 
 $main_req = $parts[1] ?? null;
 if ($main_req !== null) {
-
     $responserOf = new Reponser;
     $responserOf->ResProcesser($_SERVER['REQUEST_METHOD'], $main_req);
 }
