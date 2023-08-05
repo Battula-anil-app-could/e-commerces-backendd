@@ -47,10 +47,21 @@ class Reponser
         //     }
         // }
         if ($method === "GET" && $main_req === "products") {
+            $userInput = $_GET['userInput'];
+            $pattern = "%$userInput%";
+            // echo $userInput;
+            $data = $connect->prepare("SELECT * FROM product WHERE description LIKE ? OR category LIKE ?");
+            $data->execute([$pattern, $pattern]);
 
-            $data = $connect->prepare("SELECT * FROM product");
-            $data->execute();
-            echo json_encode($data->fetchAll(PDO::FETCH_ASSOC));
+            $result = $data->fetchAll(PDO::FETCH_ASSOC);
+            if (count($result) === 0) {
+                $pattern = "%A%";
+                $data = $connect->prepare("SELECT * FROM product WHERE description LIKE ?");
+                $data->execute([$pattern]);
+                echo json_encode($data->fetchAll(PDO::FETCH_ASSOC));
+            } else {
+                echo json_encode($result);
+            }
         }
 
         if ($method === "POST" && $main_req === "signup") {
