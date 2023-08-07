@@ -62,9 +62,7 @@ class Reponser
             } else {
                 echo json_encode($result);
             }
-        }
-
-        if ($method === "POST" && $main_req === "signup") {
+        } else if ($method === "POST" && $main_req === "signup") {
             $body = file_get_contents("php://input");
             parse_str($body, $queryParams);
             $userName = $queryParams["userName"];
@@ -151,8 +149,7 @@ class Reponser
                 }
 
             }
-        }
-        if ($method === "POST" && $main_req === "login") {
+        } else if ($method === "POST" && $main_req === "login") {
             $body = file_get_contents("php://input");
             parse_str($body, $queryParams);
             $email = $queryParams["email"];
@@ -227,12 +224,12 @@ class Reponser
                 echo json_encode($res);
             }
 
-        }
-        if ($method === "POST" && $main_req === "Cart") {
+        } else if ($method === "POST" && $main_req === "Cart") {
             $body = file_get_contents("php://input");
             parse_str($body, $queryParams);
             $userId = $queryParams["userId"];
             $productId = $queryParams['productId'];
+
             try {
                 $letcheckProductExist = $connect->prepare("SELECT * FROM cart where user_id = '$userId' AND product_id = $productId");
                 $letcheckProductExist->execute();
@@ -266,9 +263,7 @@ class Reponser
                 ];
                 echo json_encode($res);
             }
-
-        }
-        if ($method === "DELETE" && $main_req === "Cart") {
+        } else if ($method === "DELETE" && $main_req === "Cart") {
             $body = file_get_contents("php://input");
             parse_str($body, $queryParams);
             $userId = $_GET['userId'] ?? $queryParams["userId"];
@@ -309,8 +304,7 @@ class Reponser
                 echo json_encode($res);
             }
 
-        }
-        if ($method === "PUT" && $main_req === "Cart") {
+        } else if ($method === "PUT" && $main_req === "Cart") {
             $body = file_get_contents("php://input");
             parse_str($body, $queryParams);
             $userId = $_REQUEST['userId'] ?? $queryParams["userId"];
@@ -352,8 +346,7 @@ class Reponser
                 echo json_encode($res);
             }
 
-        }
-        if ($method === "GET" && $main_req === "cart") {
+        } else if ($method === "GET" && $main_req === "cart") {
             $userId = $_GET["userId"];
             try {
                 $productsInCart = $connect->prepare("SELECT product_id, quantity FROM cart WHERE user_id = $userId");
@@ -377,23 +370,22 @@ class Reponser
                 echo json_encode($res);
             }
 
-        }
-        if ($method === "POST" && $main_req === "order") {
+        } else if ($method === "POST" && $main_req === "order") {
             $body = file_get_contents("php://input");
             parse_str($body, $queryParams);
             $buyngItems = json_encode($queryParams["buyingItems"]);
             $userId = $queryParams["userId"];
-            $insertOrder = $connect->prepare("INSERT INTO `order` (user_id, order_item) VALUES (?,?)");
+            $insertOrder = $connect->prepare("INSERT INTO `order`(user_id, order_item) VALUES (?,?)");
             $insertOrder->execute([$userId, $buyngItems]);
             $checkIsInsert = $connect->prepare("SELECT * FROM `order` WHERE user_id = $userId");
             $checkIsInsert->execute();
             $result = $checkIsInsert->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode($result);
 
+        } else {
+            echo "hiii";
         }
     }
-
-
 }
 
 ?>
