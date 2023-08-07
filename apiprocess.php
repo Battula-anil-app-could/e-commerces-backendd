@@ -353,7 +353,7 @@ class Reponser
             }
 
         }
-        if ($method === "GET" && $main_req === "cartItems") {
+        if ($method === "GET" && $main_req === "cart") {
             $userId = $_GET["userId"];
             try {
                 $productsInCart = $connect->prepare("SELECT product_id, quantity FROM cart WHERE user_id = $userId");
@@ -376,6 +376,19 @@ class Reponser
                 ];
                 echo json_encode($res);
             }
+
+        }
+        if ($method === "POST" && $main_req === "order") {
+            $body = file_get_contents("php://input");
+            parse_str($body, $queryParams);
+            $buyngItems = json_encode($queryParams["buyingItems"]);
+            $userId = $queryParams["userId"];
+            $insertOrder = $connect->prepare("INSERT INTO `order` (user_id, order_item) VALUES (?,?)");
+            $insertOrder->execute([$userId, $buyngItems]);
+            $checkIsInsert = $connect->prepare("SELECT * FROM `order` WHERE user_id = $userId");
+            $checkIsInsert->execute();
+            $result = $checkIsInsert->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode($result);
 
         }
     }
