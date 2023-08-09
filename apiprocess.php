@@ -25,28 +25,85 @@ class Reponser
     public function ResProcesser($method, $main_req): void
     {
         $connect = $this->dbConnect();
-        // if ($method === "POST" && $main_req === "addproduct") {
-        //     try {
-        //         $body = file_get_contents("php://input");
-        //         parse_str($body, $queryParams);
-        //         $name = $queryParams["name"];
-        //         $price = $queryParams["price"];
-        //         $description = $queryParams["description"];
-        //         $category = $queryParams["category"];
-        //         $imgUrl = $queryParams["imageUrl"];
-        //         $sqlOf = "INSERT INTO product(name, category, description, img_url, price) VALUES('$name', '$category', '$description', '$imgUrl', $price)";
+        if ($method === "POST" && $main_req === "products") {
+            try {
+                $body = file_get_contents("php://input");
+                parse_str($body, $queryParams);
+                $name = $queryParams["name"];
+                $price = $queryParams["price"];
+                $description = $queryParams["description"];
+                $category = $queryParams["category"];
+                $imgUrl = $queryParams["imageUrl"];
+                $sqlOf = "INSERT INTO product(name, category, description, img_url, price) VALUES('$name', '$category', '$description', '$imgUrl', $price)";
 
-        //         $insert = $connect->prepare($sqlOf);
-        //         $insert->execute();
+                $insert = $connect->prepare($sqlOf);
+                $insert->execute();
+                if (true) {
+                    $res = [
+                        'message' => 'product Added Successfully'
+                    ];
+                    echo json_encode($res);
+                }
+            } catch (err) {
+                $res = [
+                    'message' => 'product Added Successfully'
+                ];
+                echo json_encode($res);
+            }
+        } else if ($method === "DELETE" && $main_req === "products") {
+            try {
+                $body = file_get_contents("php://input");
+                parse_str($body, $queryParams);
+                $productId = $_GET['productId'] ?? $queryParams["productId"];
+                $sqlOf = "DELETE FROM product WHERE product_id = $productId";
 
-        //         $data = $connect->prepare("SELECT * FROM product");
-        //         $data->execute();
-        //         echo json_encode($data->fetchAll(PDO::FETCH_ASSOC));
-        //     } catch (err) {
-        //         echo "error while adding product";
-        //     }
-        // }
-        if ($method === "GET" && $main_req === "products") {
+                $insert = $connect->prepare($sqlOf);
+                $insert->execute();
+                if (true) {
+                    $res = [
+                        'message' => 'product Deleted Successfully'
+                    ];
+                    echo json_encode($res);
+                }
+            } catch (err) {
+                $res = [
+                    'message' => 'product Added Successfully'
+                ];
+                echo json_encode($res);
+            }
+        } else if ($method === "PUT" && $main_req === "products") {
+            $body = file_get_contents('php://input');
+            parse_str($body, $queryParams);
+            $id = $queryParams["productId"];
+            $name = $queryParams["name"];
+            $description = $queryParams['description'];
+            $price = $queryParams['price'];
+            $imgUrl = $queryParams["imgUrl"];
+            $category = $queryParams["category"];
+
+            $query = "UPDATE product 
+                    SET
+                        `name` = '$name',
+                        category = '$category',
+                        `description` = '$description',
+                        img_url = '$imgUrl',
+                        price = $price
+                    WHERE product_id = $id";
+            $letUpadate = $connect->prepare($query);
+            $result = $letUpadate->execute();
+            if ($result) {
+                $res = [
+                    'message' => "Product updated successfully"
+                ];
+                echo json_encode($res);
+            } else {
+                $res = [
+                    'message' => "Error while updating"
+                ];
+                echo json_encode($res);
+            }
+
+        } else if ($method === "GET" && $main_req === "products") {
             $userInput = $_GET['userInput'];
             $pattern = "%$userInput%";
             // echo $userInput;
@@ -310,8 +367,6 @@ class Reponser
             $userId = $_REQUEST['userId'] ?? $queryParams["userId"];
             $productId = $_REQUEST['productId'] ?? $queryParams['productId'];
             $quantity = $_REQUEST['quantity'] ?? $queryParams['quantity'];
-            echo $userId;
-            echo $productId;
             try {
                 $letcheckDelete = $connect->prepare("UPDATE cart SET quantity = $quantity where user_id = $userId AND product_id = $productId");
                 $letcheckDelete->execute();
@@ -382,8 +437,42 @@ class Reponser
             $result = $checkIsInsert->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode($result);
 
-        } else {
-            echo "hiii";
+        } else if ($method === "PUT" && $main_req === "user") {
+            $body = file_get_contents("php://input");
+            parse_str($body, $queryParams);
+            $userId = $queryParams["id"];
+            $userName = $queryParams["name"];
+            $email = $queryParams["email"];
+            $mobileNumber = $queryParams["mobileNumber"];
+            $adderss = $queryParams["adderss"];
+
+            if (!preg_match('/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/', $email)) {
+                $res = [
+                    'message' => 'The length of the email should be above 5 characters',
+                    'status' => 404
+
+                ];
+                echo json_encode($res);
+
+            } else {
+                $query = "UPDATE `user`
+                        SET 
+                            `name` = '$userName',
+                             mobile_number = $mobileNumber,
+                             email = '$email',
+                            `adderss` = '$adderss'
+                        WHERE
+                            user_id = $userId";
+
+                $updateData = $connect->prepare($query);
+                $result = $updateData->execute();
+
+                if ($result) {
+                    echo "User details updated successfully.";
+                } else {
+                    echo "Error updating user details.";
+                }
+            }
         }
     }
 }
